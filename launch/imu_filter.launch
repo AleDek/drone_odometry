@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!-- -->
+<launch>
+
+
+    <arg name="use_imu"       default="true"/> <!-- Assuming IMU fixed to lidar with /velodyne -> /imu_link TF -->
+    <!-- <arg name="imu_topic"     default="/unilidar/imu"/> -->
+    <arg name="imu_topic"     default="/mavros/imu/data"/>
+    <arg name="use_mag"       default="false"/>
+    <arg name="mag_topic"     default="/mavros/imu/mag"/>   
+    <!-- <arg name="imu_topic"     default="/mavros/imu/data"/>    -->
+
+
+    <arg name="frame_id"        default="base_link"/>
+
+
+    <!-- IMU orientation estimation and publish tf -->
+     <node if="$(arg use_imu)" pkg="nodelet" type="nodelet" name="imu_nodelet_manager" args="manager">
+      <remap from="imu/data_raw" to="$(arg imu_topic)"/>
+      <remap from="imu/mag"      to="$(arg mag_topic)"/>
+      <remap from="imu/data" to="$(arg imu_topic)/filtered"/>
+    </node>
+    
+    <node if="$(arg use_imu)" pkg="nodelet" type="nodelet" name="imu_filter" args="load imu_filter_madgwick/ImuFilterNodelet imu_nodelet_manager">
+      <param name="use_mag" value="$(arg use_mag)"/>
+      <param name="world_frame" value="enu"/>
+      <param name="publish_tf" value="false"/>
+      <param name="stateless" value="false"/>
+    </node>
+    
+    <!-- <node if="$(arg use_imu)" pkg="nodelet" type="nodelet" name="imu_to_tf" args="load rtabmap_util/imu_to_tf imu_nodelet_manager">
+      <remap from="imu/data" to="$(arg imu_topic)/filtered"/>
+      <param name="fixed_frame_id" value="$(arg frame_id)_stabilized"/>
+      <param name="base_frame_id" value="$(arg frame_id)"/>
+    </node> -->
+
+  
+</launch>

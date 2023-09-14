@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!-- -->
+<launch>
+
+    <arg name="odom_frame_id"   default="t265_odom_frame"/> <!-- input odometry: here we use T265 odometry, but it could be wheel odometry -->
+    <arg name="frame_id"        default="base_link"/>       <!-- base frame of the robot: for this example, we use velodyne as base frame -->
+
+    <!-- Static transform between velodyne and T265: TODO: Adjust with real position/orientation!!! -->
+    <node pkg="tf" type="static_transform_publisher" name="t265_to_base" args="0.11 0 0.045 0 0 0 base_link t265_pose_frame 100"/>
+
+    <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_t265_odom" args="0 0 0 0 0 0 map t265_odom_frame 100"/> -->
+    <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_lidar_odom" args="0 0 0 0 0 0 map lidar_odom_frame 100"/> -->
+
+    <!-- T265 -->
+    <group ns="t265">
+      <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+        <arg name="device_type"           value="t265"/>
+        <arg name="serial_no"             value=""/>
+        <arg name="tf_prefix"             value="t265"/>
+        <arg name="initial_reset"         value="false"/>
+        <arg name="enable_fisheye1"       value="false"/>
+        <arg name="enable_fisheye2"       value="false"/>
+        <arg name="topic_odom_in"         value=""/>
+        <arg name="calib_odom_file"       value=""/>
+        <arg name="enable_pose"           value="true"/>
+        <arg name="publish_odom_tf"     default="false"/>
+
+      </include>
+    </group>
+
+    <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="screen" >
+
+      <param name="odom1_in_topic" type="string" value="/t265/odom/sample"/>  
+      <param name="cov1_mult_pos" value="0.0001"/>  
+      <param name="cov1_mult_vel" value="0.001"/>  
+
+    </node>
+
+
+
+</launch>

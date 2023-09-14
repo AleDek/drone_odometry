@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+    <node pkg="drone_odometry" type="px4_odom_publisher" name="px4_odom_publisher" output="screen" >
+
+      <remap from="/odom_in" to="/odometry/filtered"/>
+     
+
+    </node>
+
+</launch>

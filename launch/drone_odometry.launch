@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+    <include file="$(find unitree_lidar_ros)/launch/run.launch" > 
+    </include>
+  
+    <include file="$(find unitree_lidar_ros)/launch/lidar_odometry.launch"/>
+    <include file="$(find unitree_lidar_ros)/launch/t265_odometry.launch"/>
+    <include file="$(find unitree_lidar_ros)/launch/odometry_filter.launch"/>
+
+    <!-- <include file="$(find drone_odometry)/launch/px4_odom_pub.launch"/> -->
+
+</launch>
+
