@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
 )
 
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -130,6 +131,6 @@ include_directories(
 add_executable(odom_cov_overwrite src/odom_cov_overwrite.cpp)
 target_link_libraries(odom_cov_overwrite ${catkin_LIBRARIES})
 
-add_executable(px4_odom_publisher src/px4_odom_publisher.cpp)
-target_link_libraries(px4_odom_publisher ${catkin_LIBRARIES})
+add_executable(px4_tf_publisher src/px4_tf_publisher.cpp)
+target_link_libraries(px4_tf_publisher ${catkin_LIBRARIES})
 
