@@ -1,22 +1,19 @@
 <?xml version="1.0" ?>
 <launch>
     <node pkg="drone_odometry" type="px4_tf_publisher" name="px4_tf_publisher" output="screen" >
-
       <!-- <remap from="/odometry/filtered" to="/camera/odom/sample"/> -->
-      <remap from="/odometry/filtered" to="/odometry/filtered"/>
+      <remap from="/odometry/filtered" to="/mavros/odometry/out"/>
 
       <param name="cov_tresh_critical" value="0.05"/>  
       <param name="cov_tresh_termination" value="0.09"/> 
-      <param name="odom_timeout" value="0.05"/>   
+      <param name="odom_timeout" value="0.08"/>   
      
-
       <param name="map_frame" value="map"/>  
       <param name="odom_frame" value="odom"/>  
       <param name="base_aux_frame" value="base_link_stabilized"/>  
       <param name="base_frame" value="base_link"/>  
-      <param name="tf_pub_rate" value="50.0"/> 
+      <param name="tf_pub_rate" value="10.0"/> 
       <param name="publish_tf" value="true"/>  
-
 
     </node>
 

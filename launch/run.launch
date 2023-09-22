@@ -1,13 +1,12 @@
 <launch>
 
-  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find unitree_lidar_ros)/rviz/view.rviz" />
+  <!-- <node pkg="rviz" type="rviz" name="rviz" args="-d $(find unitree_lidar_ros)/rviz/view.rviz" /> -->
 
   <node pkg="unitree_lidar_ros" type="unitree_lidar_ros_node"  name="unitree_lidar_ros_node" respawn="true">
     <rosparam command="load" file="$(find unitree_lidar_ros)/config/config.yaml"/>
-
   </node>
 
   <node pkg="tf" type="static_transform_publisher" name="unilidar_lidar_to_imu" args="-0.007698, -0.014655, 0.00667 0 0 0 /unilidar_lidar /unilidar_imu 100"/>
-  <node pkg="tf" type="static_transform_publisher" name="base_to_lidar" args="0.11 0 0.16 0 1.57 0 /base_link /unilidar_lidar 100"/>
+  <node pkg="tf" type="static_transform_publisher" name="base_to_lidar" args="0.485 -0.156 0.0 0.0 1.57 0.0 /base_link /unilidar_lidar 100"/>
 
 </launch>

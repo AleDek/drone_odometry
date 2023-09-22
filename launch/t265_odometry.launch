@@ -6,8 +6,8 @@
     <arg name="frame_id"        default="base_link"/>       <!-- base frame of the robot: for this example, we use velodyne as base frame -->
 
     <!-- Static transform between velodyne and T265: TODO: Adjust with real position/orientation!!! -->
-    <node pkg="tf" type="static_transform_publisher" name="t265_to_base" args="0.11 0 0.045 0 0 0 base_link t265_pose_frame 100"/>
-
+    <node pkg="tf" type="static_transform_publisher" name="base_to_t265" args="0.485 0.156 0.02 0.0 0.0 0.0 base_link t265_pose_frame 100"/>
+  
     <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_t265_odom" args="0 0 0 0 0 0 map t265_odom_frame 100"/> -->
     <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_lidar_odom" args="0 0 0 0 0 0 map lidar_odom_frame 100"/> -->
 

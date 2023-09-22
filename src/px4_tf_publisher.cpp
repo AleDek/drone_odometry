@@ -143,7 +143,7 @@ void PX4_TF_PUBLISHER::vision_status_publisher(){
 
         _odom_sem = false;
         _max_cov_now = get_max_cov( _odom_now );
-        ROS_INFO("max covariance: %f",_max_cov_now);
+        // ROS_INFO("max covariance: %f",_max_cov_now);
         _odom_sem = true;
 
         if(_max_cov_now > _cov_tresh_termination){
@@ -156,7 +156,7 @@ void PX4_TF_PUBLISHER::vision_status_publisher(){
             _comp_state_msg.state = mavros_msgs::CompanionProcessStatus::MAV_STATE_ACTIVE;
         }
 
-        ROS_INFO("timestamp delta: %f", ros::Time::now().toSec()- _odom_now.header.stamp.toSec() );
+        // ROS_INFO("timestamp delta: %f", ros::Time::now().toSec()- _odom_now.header.stamp.toSec() );
         if((ros::Time::now().toSec()- _odom_now.header.stamp.toSec() ) > _odom_timeout ){
             _comp_state_msg.state = mavros_msgs::CompanionProcessStatus::MAV_STATE_FLIGHT_TERMINATION;
             ROS_ERROR("Odometry message timeout !");
@@ -191,25 +191,25 @@ void PX4_TF_PUBLISHER::tf_publisher() {
 
     while ( ros::ok() ) {
 
-        
-        
         try{
             _odom_sem = false;
             t_now = _odom_now.header.stamp; // t_now = ros::Time::now();
-            // T_m_b = utilities::T_from_odom(_odom_now); //ESPLOSO ---------------------------
+            T_m_b = utilities::T_from_odom(_odom_now); //ESPLOSO ---------------------------
             _odom_sem = true;
 
-            Tf_o_m = _tfBuffer.lookupTransform(_odom_frame, _map_frame, t_now,ros::Duration(0.5));
-            Tf_b_bs = _tfBuffer.lookupTransform( _base_frame , _base_aux_frame, t_now,ros::Duration(0.5));
-            // T_o_m = utilities::T_from_tf(Tf_o_m);
-            // T_b_bs = utilities::T_from_tf(Tf_b_bs);
+            Tf_o_m = _tfBuffer.lookupTransform(_odom_frame, _map_frame, t_now,ros::Duration(0.1));
+            Tf_b_bs = _tfBuffer.lookupTransform( _base_frame , _base_aux_frame, t_now,ros::Duration(0.1));
+            T_o_m = utilities::T_from_tf(Tf_o_m);
+            T_b_bs = utilities::T_from_tf(Tf_b_bs);
 
-            // T_o_bs = T_o_m*T_m_b*T_b_bs;
+            T_o_bs = T_o_m*T_m_b*T_b_bs;
 
-            // utilities::tf_from_T(Tf_o_bs,T_o_bs);
+            utilities::tf_from_T(Tf_o_bs,T_o_bs);
             // Tf_o_bs.header.stamp = t_now;
+            Tf_o_bs.header.stamp = ros::Time::now();
+            ROS_INFO("TF Deltat: %f", ros::Time::now().toSec()- t_now.toSec() );
 
-            // _tfBroadcaster.sendTransform(Tf_o_bs);
+            _tfBroadcaster.sendTransform(Tf_o_bs);
 
         }
         catch (tf2::TransformException &ex) {

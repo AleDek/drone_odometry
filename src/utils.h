@@ -394,7 +394,7 @@ namespace utilities{
 		Vector4d q(od.pose.pose.orientation.w,od.pose.pose.orientation.x,od.pose.pose.orientation.y,od.pose.pose.orientation.z);
 		Vector4d p(od.pose.pose.position.x,od.pose.pose.position.y,od.pose.pose.position.z,1.0);
 		T.block(0,0,3,3) = QuatToMat(q);
-		T.block(0,3,1,4) = p.transpose();
+		T.block(0,3,4,1) = p;
 		return T;
 	}
 
@@ -403,14 +403,14 @@ namespace utilities{
 		Vector4d q(tf.transform.rotation.w,tf.transform.rotation.x,tf.transform.rotation.y,tf.transform.rotation.z);
 		Vector4d p(tf.transform.translation.x,tf.transform.translation.y,tf.transform.translation.z,1.0);
 		T.block(0,0,3,3) = QuatToMat(q);
-		T.block(0,3,1,4) = p.transpose();
+		T.block(0,3,4,1) = p;
 		return T;
 	}
 
 	inline void tf_from_T(geometry_msgs::TransformStamped& tf ,Matrix4d T){
 
 		Matrix3d R =  T.block(0,0,3,3);
-		Vector3d p = T.block(0,3,1,3);
+		Vector3d p = T.block(0,3,3,1);
 		Vector4d q = rot2quat(R);
 		tf.transform.rotation.w = q(0);
 		tf.transform.rotation.x = q(1);
@@ -427,7 +427,7 @@ namespace utilities{
 		Matrix4d Tinv = Matrix4d::Identity();
 		
 		Matrix3d R = T.block(0,0,3,3).transpose(); //Rinv
-		Vector3d o = T.block(0,3,1,3).transpose(); //col vect
+		Vector3d o = T.block(0,3,3,1).transpose(); //col vect
 
 		Tinv.block(0,0,3,3) = R;
 		Tinv.block(0,3,1,3) = -R*o;

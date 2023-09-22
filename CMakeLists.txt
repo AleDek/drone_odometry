@@ -19,6 +19,8 @@ find_package(catkin REQUIRED COMPONENTS
   tf2
 )
 
+include_directories(/usr/include/eigen3)
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)

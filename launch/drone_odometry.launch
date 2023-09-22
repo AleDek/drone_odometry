@@ -4,11 +4,14 @@
     <include file="$(find unitree_lidar_ros)/launch/run.launch" > 
     </include>
   
-    <include file="$(find unitree_lidar_ros)/launch/lidar_odometry.launch"/>
-    <include file="$(find unitree_lidar_ros)/launch/t265_odometry.launch"/>
-    <include file="$(find unitree_lidar_ros)/launch/odometry_filter.launch"/>
+    <include file="$(find drone_odometry)/launch/lidar_odometry.launch"/>
+    <include file="$(find drone_odometry)/launch/t265_odometry.launch"/>
 
-    <!-- <include file="$(find drone_odometry)/launch/px4_odom_pub.launch"/> -->
+    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/>
+    <!-- <include file="$(find drone_odometry)/launch/slam.launch"/> -->
+
+    <include file="$(find drone_odometry)/launch/odometry_filter.launch"/>
+    <include file="$(find drone_odometry)/launch/px4_tf_pub.launch"/>
 
 </launch>
 
