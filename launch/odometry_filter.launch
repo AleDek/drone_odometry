@@ -1,14 +1,16 @@
 <?xml version="1.0" ?>
 <launch>
+    <arg name="output"        default="screen"/>
 
     <node pkg="tf" type="static_transform_publisher" name="odom_to_t265_odom" args="0 0 0 0 0 0 odom t265_odom_frame 100"/>
     <node pkg="tf" type="static_transform_publisher" name="odom_to_lidar_odom" args="0 0 0 0 0 0 odom lidar_odom_frame 100"/>
 
     <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/> -->
 
-    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_se" clear_params="true"> <!-- should be published by slam -->
+    <node pkg="robot_localization" type="ukf_localization_node" name="ukf_se" clear_params="true" output="$(arg output)"> <!-- should be published by slam -->
       <remap from="/odometry/filtered" to="/mavros/odometry/out"/>
-      <param name="frequency" value="100"/>  
+      <param name="debug" value="false" />
+      <param name="frequency" value="80"/>  
       <!-- <param name="sensor_timeout" value="1.0"/>    -->  <!--default 1/f -->
 
       <param name="map_frame" value="map"/>
@@ -18,7 +20,7 @@
       <param name="publish_tf" value="false"/>
 
     <!-- t265 odometry -->
-      <param name="odom0_queue_size" value="1000"/>  
+      <param name="odom0_queue_size" value="1000"/>   <!-- 100 -->
       <param name="odom0" value="/t265/odom/sample_cov"/>
       <rosparam param="odom0_config">[false,  false,  false,          <!-- x  y  z -->
                                       true, true, true,               <!-- r  p  y -->
@@ -29,7 +31,7 @@
       <param name="odom0_relative" value="true"/>
 
     <!-- 3d lidar odometry -->
-      <param name="odom1_queue_size" value="1000"/>  
+      <param name="odom1_queue_size" value="1000"/>   <!-- 100 -->
       <param name="odom1" value="/rtabmap/lidar_odom"/>
       <rosparam param="odom1_config">[true,  true,  true,             <!-- x  y  z -->
                                       true, true, true,               <!-- r  p  y -->

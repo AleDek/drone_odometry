@@ -1,6 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
-    <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="screen" >
+    <arg name="output"        default="screen"/>
+
+    <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="$(arg output)" >
 
       <param name="odom1_in_topic" type="string" value="/t265/odom/sample"/>  
       <param name="cov1_mult_pos" value="0.0001"/>  

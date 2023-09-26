@@ -10,7 +10,7 @@
      $ rosrun rviz rviz -f map
      $ Show TF and /rtabmap/cloud_map topics
     -->
-
+    <arg name="output"        default="screen"/>
     <arg name="rtabmap_viz"   default="false"/>
     <arg name="use_imu"       default="true"/> <!-- Assuming IMU fixed to lidar with /velodyne -> /imu_link TF -->
     <arg name="imu_topic"     default="/unilidar/imu"/>
@@ -50,7 +50,7 @@
 
     <group ns="rtabmap">
      
-      <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="screen" args="-d">
+      <node pkg="rtabmap_slam" type="rtabmap" name="rtabmap" output="$(arg output)" args="-d">
         <param name="frame_id"             type="string" value="$(arg frame_id)"/>
         <param name="map_frame_id"             type="string" value="map"/>
         <param name="odom_frame_id"             type="string" value="odom"/>

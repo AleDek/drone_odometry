@@ -11,6 +11,7 @@
      $ Show TF and /rtabmap/cloud_map topics
     -->
 
+    <arg name="output"        default="screen"/>
     <arg name="rtabmap_viz"   default="false"/>
     <arg name="use_imu"       default="true"/> <!-- Assuming IMU fixed to lidar with /velodyne -> /imu_link TF -->
     <arg name="imu_topic"     default="/unilidar/imu"/>
@@ -77,7 +78,7 @@
     </node>
 
     <group ns="rtabmap">
-      <node pkg="rtabmap_odom" type="icp_odometry" name="icp_odometry" output="screen">
+      <node pkg="rtabmap_odom" type="icp_odometry" name="icp_odometry" output="$(arg output)">
         <remap from="scan_cloud" to="$(arg scan_topic)"/>
         <remap from="odom" to="lidar_odom"/>
         <param name="frame_id"        type="string" value="$(arg frame_id)"/>
@@ -128,7 +129,7 @@
         <param if="$(arg deskewing)" name="OdomLOAM/ScanPeriod" type="string" value="0"/>
       </node>
 
-      <node pkg="nodelet" type="nodelet" name="point_cloud_assembler" args="standalone rtabmap_util/point_cloud_assembler" output="screen">
+      <node pkg="nodelet" type="nodelet" name="point_cloud_assembler" args="standalone rtabmap_util/point_cloud_assembler" output="$(arg output)">
         <remap     if="$(arg deskewing)" from="cloud" to="odom_filtered_input_scan"/>
         <remap unless="$(arg deskewing)" from="cloud" to="$(arg scan_topic)"/>
         <remap from="odom" to="lidar_odom"/>

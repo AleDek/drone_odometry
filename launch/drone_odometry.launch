@@ -1,17 +1,39 @@
 <?xml version="1.0"?>
 
 <launch>
+
+    <arg name="output"        default="screen"/> 
+    <arg name="enable_slam"   default="false"/>
+
     <include file="$(find unitree_lidar_ros)/launch/run.launch" > 
+        <arg name="output" value="$(arg output)" />
     </include>
   
-    <include file="$(find drone_odometry)/launch/lidar_odometry.launch"/>
-    <include file="$(find drone_odometry)/launch/t265_odometry.launch"/>
+    <include file="$(find drone_odometry)/launch/lidar_odometry.launch">
+        <arg name="output" value="$(arg output)" />
+    </include>
 
-    <node pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/>
-    <!-- <include file="$(find drone_odometry)/launch/slam.launch"/> -->
+    <include file="$(find drone_odometry)/launch/t265_odometry.launch">
+        <arg name="output" value="$(arg output)" />
+    </include>
 
-    <include file="$(find drone_odometry)/launch/odometry_filter.launch"/>
-    <include file="$(find drone_odometry)/launch/px4_tf_pub.launch"/>
+    <node unless="$(arg enable_slam)" pkg="tf" type="static_transform_publisher" name="map_to_odom" args="0 0 0 0 0 0 map odom 100"/>
+    <include if="$(arg enable_slam)" file="$(find drone_odometry)/launch/slam.launch">
+        <arg name="output" value="$(arg output)" />
+    </include>
+
+    <include file="$(find drone_odometry)/launch/odometry_filter.launch">
+        <arg name="output" value="$(arg output)" />
+    </include>
+
+    <include file="$(find drone_odometry)/launch/px4_tf_pub.launch">
+        <arg name="output" value="$(arg output)" />
+    </include>
+
+    <!-- set logger level for rtabmap  -->
+    <node pkg="rosservice" type="rosservice" name="rtabmap_log_level" args="call --wait /rtabmap/icp_odometry/set_logger_level 'ros.rtabmap_odom' 'warn'" />
+    <!-- set logger level for px4_tf_publisher  -->
+    <node pkg="rosservice" type="rosservice" name="px4_tf_publishrer_log_level" args="call --wait /px4_tf_publisher/set_logger_level 'ros.drone_odometry' 'warn'" />
 
 </launch>
 
