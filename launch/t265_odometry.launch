@@ -32,8 +32,8 @@
     <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="$(arg output)" >
 
       <param name="odom1_in_topic" type="string" value="/t265/odom/sample"/>  
-      <param name="cov1_mult_pos" value="0.01"/>  
-      <param name="cov1_mult_vel" value="0.01"/>  
+      <param name="cov1_mult_pos" value="0.001"/>  <!-- 0.01 -->
+      <param name="cov1_mult_vel" value="0.0001"/>  <!-- 0.01 -->
 
     </node>
 

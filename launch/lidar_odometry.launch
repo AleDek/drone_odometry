@@ -34,7 +34,7 @@
     <arg name="loop_ratio"      default="0.2"/>
 
     <arg name="resolution"         default="0.05"/> <!-- set 0.05-0.3 for indoor, set 0.3-0.5 for outdoor (0.4 for kitti) -->
-    <arg name="iterations"         default="10"/>
+    <arg name="iterations"         default="20"/>
 
     <!-- Grid parameters -->
     <arg name="ground_is_obstacle" default="true"/>
@@ -112,7 +112,7 @@
         <param name="Icp/MaxTranslation"      type="string" value="2"/>
         <param name="Icp/MaxCorrespondenceDistance" type="string" value="$(eval resolution*10)"/>
         <param name="Icp/PM"                  type="string" value="true"/>
-        <param name="Icp/PMOutlierRatio"      type="string" value="0.7"/>
+        <param name="Icp/PMOutlierRatio"      type="string" value="0.3"/> <!-- 0.7 -->
         <param name="Icp/CorrespondenceRatio" type="string" value="0.01"/>
         <param if="$(arg ground_normals_up)" name="Icp/PointToPlaneGroundNormalsUp"  type="string" value="0.8"/>
 
