@@ -4,8 +4,8 @@
 
   <node pkg="drone_odometry" type="px4_tf_publisher" name="px4_tf_publisher" output="$(arg output)" >
     <!-- <remap from="/odometry/filtered" to="/camera/odom/sample"/> -->
-    <!-- <remap from="/odometry/filtered" to="/mavros/odometry/out"/> -->
-    <remap from="/odometry/filtered" to="/mavros/odometry/in"/>
+    <!-- <remap from="/odometry/filtered" to="/mavros/odometry/out"/> --> <!-- use companoion pc ekf-->
+    <remap from="/odometry/filtered" to="/mavros/odometry/in"/>  <!-- use drone ekf-->
 
     <param name="cov_tresh_critical" value="0.08"/>  
     <param name="cov_tresh_termination" value="0.3"/> 
