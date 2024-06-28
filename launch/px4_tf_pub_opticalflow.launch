@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<launch>
+  <arg name="output"        default="screen"/>
+
+  <node pkg="drone_odometry" type="px4_tf_publisher" name="px4_tf_publisher" output="$(arg output)" >
+    <!-- <remap from="/odometry/filtered" to="/camera/odom/sample"/> -->
+    <!-- <remap from="/odometry/filtered" to="/mavros/odometry/out"/> --> <!-- use companoion pc ekf-->
+    <remap from="/odometry/filtered" to="/mavros/odometry/in"/>  <!-- use drone ekf-->
+
+    <param name="cov_tresh_critical" value="10"/>    <!-- high value to not activate -->
+    <param name="cov_tresh_termination" value="100"/>  <!-- high value to not activate -->
+    <param name="odom_timeout" value="10"/>     <!-- high value to not activate -->
+    
+    <param name="map_frame" value="map"/>  
+    <param name="odom_frame" value="odom"/>  
+    <param name="base_aux_frame" value="base_link"/>  
+    <param name="base_frame" value="base_link"/>  
+    <param name="tf_pub_rate" value="30.0"/>   <!-- 10 -->
+    <param name="publish_tf" value="true"/>  
+
+  </node>
+
+  <!-- set logger level for px4_tf_publisher  -->
+    <node pkg="rosservice" type="rosservice" name="px4_tf_publishrer_log_level" args="call --wait /px4_tf_publisher/set_logger_level 'ros.drone_odometry' 'warn'" />
+
+</launch>
