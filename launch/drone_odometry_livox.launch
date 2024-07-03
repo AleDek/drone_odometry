@@ -4,18 +4,24 @@
 
     <arg name="output"        default="screen"/> 
     <arg name="enable_slam"   default="false"/>
+    
+    <node pkg="tf" type="static_transform_publisher" name="base_link_to_livox_frame" args="0.485 -0.156 0.0 0.0 1.57 0.0 /base_link /livox_frame 100"/>
 
-    <!-- <node pkg="tf" type="static_transform_publisher" name="base_link_to_unilidar_imu" args="0 0 0 0 0 0 base_link unilidar_imu 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="base_link_to_unilidar_lidar" args="0 0 0 0 0 0 base_link unilidar_lidar 100"/> -->
+    <!-- <include file="$(find unitree_lidar_ros)/launch/run.launch" > 
+        <arg name="output" value="$(arg output)" />
+    </include> -->
 
-    <node pkg="tf" type="static_transform_publisher" name="unilidar_lidar_to_imu" args="-0.007698, -0.014655, 0.00667 0 0 0 /unilidar_lidar /unilidar_imu 100"/>
-    <node pkg="tf" type="static_transform_publisher" name="base_to_lidar" args="0.485 -0.156 0.0 0.0 1.57 0.0 /base_link /unilidar_lidar 100"/>
-
-    <include file="$(find unitree_lidar_ros)/launch/run.launch" > 
+    <include file="$(find livox_ros_driver2)/launch_ROS1/rviz_MID360.launch">
+        <!-- <arg name="output" value="$(arg output)" /> -->
+        <arg name="publish_freq" default="10.0"/>
+        <arg name="xfer_format" default="0"/>
     </include>
   
     <include file="$(find drone_odometry)/launch/lidar_odometry.launch">
         <arg name="output" value="$(arg output)" />
+        <arg name="scan_topic"    value="/livox/lidar"/>
+        <arg name="imu_topic"     value="/livox/imu"/>
+        <arg name="deskewing"     default="false"/> <!-- timestamp field of pointcloud2 message is used only for deskewing -->
     </include>
 
     <include file="$(find drone_odometry)/launch/t265_odometry.launch">
@@ -39,6 +45,10 @@
     <node pkg="rosservice" type="rosservice" name="rtabmap_log_level" args="call --wait /rtabmap/icp_odometry/set_logger_level 'ros.rtabmap_odom' 'warn'" />
     <!-- set logger level for px4_tf_publisher  -->
     <node pkg="rosservice" type="rosservice" name="px4_tf_publishrer_log_level" args="call --wait /px4_tf_publisher/set_logger_level 'ros.drone_odometry' 'warn'" />
+
+    <!-- Run plotjuggler -->
+    <node pkg="plotjuggler" type="plotjuggler" name="plotjuggler" args="-l /home/dev/src/drone_odometry/plotjuggler_layout.xml" />
+    <!-- <node pkg="plotjuggler" type="plotjuggler" name="plotjuggler"/> -->
 
 </launch>
 
