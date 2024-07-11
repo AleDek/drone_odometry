@@ -12,9 +12,10 @@
     </include> -->
 
     <include file="$(find livox_ros_driver2)/launch_ROS1/rviz_MID360.launch">
-        <!-- <arg name="output" value="$(arg output)" /> -->
+        <arg name="output" value="$(arg output)" />
         <arg name="publish_freq" default="10.0"/>
         <arg name="xfer_format" default="0"/>
+        <arg name="rviz_enable" default="false"/>
     </include>
   
     <include file="$(find drone_odometry)/launch/lidar_odometry.launch">
