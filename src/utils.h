@@ -21,7 +21,12 @@ namespace utilities{
 	typedef Eigen::Matrix<double, 6, 1> Vector6d;
 	typedef Eigen::Matrix<double, 6, 6> Matrix6d;
 
-
+	inline bool isnan(double x){
+		return (x!=x);
+	}
+	inline bool isnan(float x){
+		return (x!=x);
+	}
 
 	inline double angleError(double target, double actual){
 		double MAX_VALUE = 2.0*M_PI;

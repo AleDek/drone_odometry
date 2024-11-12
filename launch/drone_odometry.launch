@@ -12,6 +12,7 @@
     <node pkg="tf" type="static_transform_publisher" name="base_to_lidar" args="0.485 -0.156 0.0 0.0 1.57 0.0 /base_link /unilidar_lidar 100"/>
 
     <include file="$(find unitree_lidar_ros)/launch/run.launch" > 
+        <arg name="output" value="$(arg output)" />
     </include>
   
     <include file="$(find drone_odometry)/launch/lidar_odometry.launch">

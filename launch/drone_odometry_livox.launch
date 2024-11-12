@@ -15,6 +15,7 @@
         <!-- <arg name="output" value="$(arg output)" /> -->
         <arg name="publish_freq" default="10.0"/>
         <arg name="xfer_format" default="0"/>
+        <arg name="rviz_enable" default="false"/>
     </include>
   
     <include file="$(find drone_odometry)/launch/lidar_odometry.launch">
@@ -47,7 +48,7 @@
     <node pkg="rosservice" type="rosservice" name="px4_tf_publishrer_log_level" args="call --wait /px4_tf_publisher/set_logger_level 'ros.drone_odometry' 'warn'" />
 
     <!-- Run plotjuggler -->
-    <node pkg="plotjuggler" type="plotjuggler" name="plotjuggler" args="-l /home/dev/src/drone_odometry/plotjuggler_layout.xml" />
+    <!-- <node pkg="plotjuggler" type="plotjuggler" name="plotjuggler" args="-l /home/dev/src/drone_odometry/plotjuggler_layout.xml" /> -->
     <!-- <node pkg="plotjuggler" type="plotjuggler" name="plotjuggler"/> -->
 
 </launch>

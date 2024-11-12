@@ -9,6 +9,7 @@ project(drone_odometry)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
+  diagnostic_msgs
   mavros
   mavros_msgs
   nav_msgs
@@ -20,7 +21,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 include_directories(/usr/include/eigen3)
-
+find_package(iir REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -129,6 +130,9 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(t265_monitor src/t265_monitor.cpp)
+target_link_libraries(t265_monitor ${catkin_LIBRARIES} iir::iir)
 
 add_executable(odom_cov_overwrite src/odom_cov_overwrite.cpp)
 target_link_libraries(odom_cov_overwrite ${catkin_LIBRARIES})

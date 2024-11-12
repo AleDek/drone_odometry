@@ -24,7 +24,9 @@
         <arg name="topic_odom_in"         value=""/>
         <arg name="calib_odom_file"       value=""/>
         <arg name="enable_pose"           value="true"/>
-        <arg name="publish_odom_tf"     default="false"/>
+        <arg name="publish_odom_tf"       value="false"/>
+        <arg name="linear_accel_cov"      value="0.01"/>
+        <arg name="angular_velocity_cov"  value="0.01"/>
 
       </include>
     </group>
