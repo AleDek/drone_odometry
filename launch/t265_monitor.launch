@@ -2,11 +2,8 @@
 <!-- -->
 <launch>
     <arg name="output"          default="screen"/>
-    <arg name="odom_frame_id"   default="t265_odom_frame"/> <!-- input odometry: here we use T265 odometry, but it could be wheel odometry -->
-    <arg name="frame_id"        default="base_link"/>       <!-- base frame of the robot: for this example, we use velodyne as base frame -->
 
     <node pkg="drone_odometry" type="t265_monitor" name="t265_monitor" output="$(arg output)" >
-
       <param name="camera_name" type="string" value="t265" />   <!--odom_t265_in_topic_ = "/"+_camera_name+"/odom/sample";-->
       <param name="odom_queue" value="100"/>  <!-- 100 -->
       <param name="odom_period_treshold" value="0.1"/>  <!-- 0.1 warn flag if t265 pub period exceed this--> 
@@ -17,9 +14,7 @@
       <param name="rst_cnt_min"         value="3"/>     <!-- 3 num of sample with cond satisfied for rtigger reset N.B. T=1/10-->  
       <param name="debug"               value="true"/>  <!--  pub debug topics -->
       <param name="enable_reset"        value="false"/>  <!-- enable kill t265 node -->
-
+      <param name="min_reset_interval"   value="1.0"/>   <!-- min time bethween two resets -->
     </node>
-
-
 
 </launch>

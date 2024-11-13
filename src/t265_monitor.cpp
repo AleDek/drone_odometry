@@ -30,6 +30,7 @@ class T265OdomSupervisor
         double _diff_min_th;
         int _rst_cnt_min;
         bool _enable_reset;
+        double _min_reset_interval; //min time bethween two resets
 
         ros::Subscriber _odom_t265_sub;
         ros::Subscriber _odom_lidar_sub;
@@ -67,6 +68,10 @@ class T265OdomSupervisor
         double _t265_vx, _t265_vy;
         bool _rst_flag_x ;
         bool _rst_flag_y ;
+        int _cnt_x;
+        int _cnt_y;
+        double _dx;
+        double _dy;
 
         double _last_t, _delta_t;   //camera check state
         double _t;
@@ -75,6 +80,8 @@ class T265OdomSupervisor
         int _error_speed;
         int _error_vision;
         double _pos_cov, _vel_cov;
+
+        double _t_last_rst;  //reset camera hysteresis;
         
     public:
         T265OdomSupervisor()
@@ -88,15 +95,15 @@ class T265OdomSupervisor
             _diagnostic_sub = nh_.subscribe("/diagnostics", 1000, &T265OdomSupervisor::diagnostic_cb, this);
 
             if(_debug){
-                _lidar_vx_filt_pub = nh_.advertise<std_msgs::Float32>("/lidar_vx_filt", _odom_queue);
-                _lidar_vy_filt_pub = nh_.advertise<std_msgs::Float32>("/lidar_vy_filt", _odom_queue);
-                _t265_vx_rot_filt_pub = nh_.advertise<std_msgs::Float32>("/t265_vx_rot_filt", _odom_queue);
-                _t265_vy_rot_filt_pub = nh_.advertise<std_msgs::Float32>("/t265_vy_rot_filt", _odom_queue);
-                _diff_x_pub = nh_.advertise<std_msgs::Float32>("/diff_x", _odom_queue);
-                _diff_y_pub = nh_.advertise<std_msgs::Float32>("/diff_y", _odom_queue);
+                _lidar_vx_filt_pub = nh_.advertise<std_msgs::Float32>("lidar_vx_filt", _odom_queue);
+                _lidar_vy_filt_pub = nh_.advertise<std_msgs::Float32>("lidar_vy_filt", _odom_queue);
+                _t265_vx_rot_filt_pub = nh_.advertise<std_msgs::Float32>("t265_vx_rot_filt", _odom_queue);
+                _t265_vy_rot_filt_pub = nh_.advertise<std_msgs::Float32>("t265_vy_rot_filt", _odom_queue);
+                _diff_x_pub = nh_.advertise<std_msgs::Float32>("diff_x", _odom_queue);
+                _diff_y_pub = nh_.advertise<std_msgs::Float32>("diff_y", _odom_queue);
             }
-            _rst_flag_x_pub = nh_.advertise<std_msgs::Float32>("/rst_flag_x", _odom_queue);
-            _rst_flag_y_pub = nh_.advertise<std_msgs::Float32>("/rst_flag_y", _odom_queue);
+            _rst_flag_x_pub = nh_.advertise<std_msgs::Float32>("rst_flag_x", _odom_queue);
+            _rst_flag_y_pub = nh_.advertise<std_msgs::Float32>("rst_flag_y", _odom_queue);
 
             _ma_lid_vx.setup(5);     //lidar flters
             _ma_lid_vy.setup(5);
@@ -115,8 +122,12 @@ class T265OdomSupervisor
             _first_lidar_odom =false;
             _tf_found = false;
 
-            _rst_flag_x =false;
+            _rst_flag_x =false;  //lidar consistency
             _rst_flag_y =false;
+            _cnt_x =0;
+            _cnt_y =0;
+            _dx =0.00;
+            _dy =0.00;
 
             ROS_INFO("odom_cov_overwrite node initialized.");
             boost::thread supervisor_th( &T265OdomSupervisor::supervisor_t, this);
@@ -174,13 +185,20 @@ class T265OdomSupervisor
                 ROS_ERROR("Failed to get 'enable_reset' parameter. Please set it before running the node.");
                 _enable_reset = false;
             }
-
+            if (!nh_.getParam("min_reset_interval", _min_reset_interval))
+            {
+                ROS_ERROR("Failed to get 'min_reset_interval' parameter. Please set it before running the node.");
+                _min_reset_interval = 1.0;
+            }
+            
             ROS_INFO("odom1_in: %s ",odom_t265_in_topic_.c_str());
             ROS_INFO("odom_period_treshold: %f ",_odom_period_treshold);
             ROS_INFO("max_odom_period_th: %f ",_max_odom_period_th);            
             ROS_INFO("v_cam_max_threshold: %f ",_v_cam_max_th);
             ROS_INFO("diff_min_threshold: %f ",_diff_min_th);
             ROS_INFO("rst_cnt_min: %d ",_rst_cnt_min);
+            ROS_INFO("min_reset_interval: %d ",_min_reset_interval);
+
         }
 
         void odom_cb(nav_msgs::Odometry odom_msg){   
@@ -253,21 +271,36 @@ class T265OdomSupervisor
         }
 
         void reset_conditions(){
-            // _first_odom = false;
+            _first_odom = false;
             _t = ros::Time::now().toSec();
             _nan_detected = false;
             _rate_not_satisfied = false;
             //TODO
-            // _rst_flag_x = false;
-            // _rst_flag_y = false;
+            _rst_flag_x = false;
+            _rst_flag_y = false;
+            _cnt_x =0;
+            _cnt_y =0;
+            _dx =0.00;
+            _dy =0.00;
+            _ma_lid_vx.reset();     //lidar flters
+            _ma_lid_vy.reset();
+            _ds_t265_vx.reset();   //t265 flters
+            _ds_t265_vy.reset();
+            _ma_t265_vx.reset();
+            _ma_t265_vy.reset();
         }
         
         void restart_t265_node(bool new_exec =false){
-            ROS_ERROR("T265 monitor: FAULT, restarting t265 node...");
-            if(_enable_reset){
+            ROS_ERROR("%s monitor: FAULT, restarting t265 node...", _camera_name.c_str());
+            bool elapsed_from_last = (ros::Time::now().toSec() - _t_last_rst) > _min_reset_interval ;
+            if(_enable_reset && elapsed_from_last ){
                 std::string kill_cmd = "rosnode kill /"+_camera_name+"/realsense2_camera";
                 system(kill_cmd.c_str());  //stop
-                ros::Duration(0.50).sleep();
+                _first_odom = false;
+                _t_last_rst = ros::Time::now().toSec();
+                reset_conditions();
+                ROS_ERROR("%s monitor: t265 node KILLED", _camera_name.c_str());
+                ros::Duration(0.50).sleep(); //TODO remove ? 
                 _first_odom = false;
                 if(new_exec){ //launch anoter instance, if not set respawn true in launch
                     ROS_ERROR("T265 monitor: FAULT, launch t265 node...");
@@ -275,6 +308,7 @@ class T265OdomSupervisor
                     ros::Duration(0.80).sleep();
                     ROS_INFO("T265 monitor: launched.");
                 }
+                // reset_conditions();
             }
             reset_conditions();
         }
@@ -303,14 +337,14 @@ class T265OdomSupervisor
                     check_camera_odometry(_odom_t265_input_msg);
                     
                     //camera odom errors prints and policy
-                    // if(_rate_not_satisfied){  //use_sim_time
-                    //     _rate_not_satisfied = false;
-                    //     ROS_WARN("T265 monitor: odometry stopped publishing for T =%f", float(_delta_t));
-                    //     if (_delta_t >_max_odom_period_th){ //N.B. deve essere maggiore del tempo per il riavvio, se no si resetterà sempre...
-                    //         ros::Duration(0.2).sleep();
-                    //         restart_t265_node();
-                    //     }
-                    // }
+                    if(_rate_not_satisfied){  //use_sim_time
+                        _rate_not_satisfied = false;
+                        ROS_WARN("T265 monitor: odometry stopped publishing for T =%f", float(_delta_t));
+                        if (_delta_t >_max_odom_period_th){ //N.B. deve essere maggiore del tempo per il riavvio, se no si resetterà sempre...
+                            ros::Duration(0.2).sleep();
+                            restart_t265_node();
+                        }
+                    }
 
                     if(_nan_detected){
                         _nan_detected = false;
@@ -415,10 +449,10 @@ class T265OdomSupervisor
 
             get_camera_tf();
 
-            int cnt_x =0;
-            int cnt_y =0;
-            double dx =0.00;
-            double dy =0.00;
+            int _cnt_x =0;
+            int _cnt_y =0;
+            double _dx =0.00;
+            double _dy =0.00;
             // _v_cam_max_th = 0.10;
             // _diff_min_th = 0.20;
             // _rst_cnt_min = 0;
@@ -432,21 +466,22 @@ class T265OdomSupervisor
             while(ros::ok()){
 
                 if(_first_odom){
-                    dx = abs(_lidar_vx - _t265_vx);
-                    dy = abs(_lidar_vy - _t265_vy);
+                    _dx = abs(_lidar_vx - _t265_vx);
+                    _dy = abs(_lidar_vy - _t265_vy);
 
-                    if(abs(_t265_vx) < _v_cam_max_th  && dx > _diff_min_th) cnt_x++;
-                    else cnt_x =0;
+                    if(abs(_t265_vx) < _v_cam_max_th  && _dx > _diff_min_th) _cnt_x++;
+                    else _cnt_x =0;
 
-                    if(abs(_t265_vy) < _v_cam_max_th  && dy > _diff_min_th) cnt_y++;
-                    else cnt_y =0;
+                    if(abs(_t265_vy) < _v_cam_max_th  && _dy > _diff_min_th) _cnt_y++;
+                    else _cnt_y =0;
                     
-                    if(cnt_x > _rst_cnt_min) _rst_flag_x =true;
+                    if(_cnt_x > _rst_cnt_min) _rst_flag_x =true;
                     else _rst_flag_x =false; //TODO reset when consumed in supervisor_t
 
-                    if(cnt_y > _rst_cnt_min) _rst_flag_y =true;
+                    if(_cnt_y > _rst_cnt_min) _rst_flag_y =true;
                     else _rst_flag_y =false; //TODO reset when consumed in supervisor_t
                 }
+
                 _rst_flag_x_msg.data = float(_rst_flag_x);
                 _rst_flag_y_msg.data = float(_rst_flag_y);
                 _rst_flag_x_pub.publish(_rst_flag_x_msg);
@@ -455,8 +490,8 @@ class T265OdomSupervisor
                 if(_debug){
                     std_msgs::Float32 diff_x_msg;
                     std_msgs::Float32 diff_y_msg;
-                    diff_x_msg.data = float(dx);
-                    diff_y_msg.data = float(dy);
+                    diff_x_msg.data = float(_dx);
+                    diff_y_msg.data = float(_dy);
                     _diff_x_pub.publish(diff_x_msg);
                     _diff_y_pub.publish(diff_y_msg);
                 }

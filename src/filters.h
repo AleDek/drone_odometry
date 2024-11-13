@@ -62,6 +62,12 @@ class DownsamplerMean { //at k, mean or k ... k.N
             _k =0;
         }
 
+        void reset(){
+            _m =0.00;
+            _y =0.00;
+            _k =0;
+        }
+
         double filter(double u){
             _m+=u;
             _period =false;
@@ -73,6 +79,7 @@ class DownsamplerMean { //at k, mean or k ... k.N
             return _y;
         }
 
+        
         bool is_period(){
             return _period;
         }
@@ -103,7 +110,14 @@ class DownsamplerMeanInterp { //at k, mean or k ... k.N
         }
 
         void setup(int N){
-             _N = N;
+            _N = N;
+            _m = _mo = 0.00;
+            _y = _y0 = 0.00;
+            _k =0;
+            _delta = 00.00;
+        }
+
+        void reset(){
             _m = _mo = 0.00;
             _y = _y0 = 0.00;
             _k =0;
@@ -148,6 +162,12 @@ class MA_scalar {
 
         void setup(int N){
             _N = N;
+            _m =0.00;
+            _mem = new num[_N];
+            for(int i =0;i<_N;i++) _mem[i]=0.00;
+        }
+
+        void reset(){
             _m =0.00;
             _mem = new num[_N];
             for(int i =0;i<_N;i++) _mem[i]=0.00;

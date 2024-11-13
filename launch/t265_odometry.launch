@@ -1,23 +1,34 @@
 <?xml version="1.0"?>
 <!-- -->
 <launch>
-    <arg name="output"        default="screen"/>
-    <arg name="odom_frame_id"   default="t265_odom_frame"/> <!-- input odometry: here we use T265 odometry, but it could be wheel odometry -->
-    <arg name="frame_id"        default="base_link"/>       <!-- base frame of the robot: for this example, we use velodyne as base frame -->
+
+    <arg name="cam_name_1"          default="t265_front"/>
+    <arg name="serial_no_1"         default="905312111404"/>
+
+    <arg name="cam_name_2"          default="t265_back"/>
+    <arg name="serial_no_2"         default="142122110919"/>
+    
+    <arg name="required"            default="false"/>
+    <arg name="output"              default="screen"/>  <!-- [ screen | log ]-->
+    <arg name="respawn"             default="true"/>
 
     <!-- Static transform between velodyne and T265: TODO: Adjust with real position/orientation!!! -->
-    <node pkg="tf" type="static_transform_publisher" name="base_to_t265" args="0.485 0.156 0.02 0.0 0.0 0.0 base_link t265_pose_frame 100"/>
-  
+    <node pkg="tf" type="static_transform_publisher" name="base_to_$(arg cam_name_1)" args="0.485 0.156 0.02 0.0 0.0 0.0 base_link $(arg cam_name_1)_pose_frame 100"/>
     <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_t265_odom" args="0 0 0 0 0 0 map t265_odom_frame 100"/> -->
     <!-- <node pkg="tf" type="static_transform_publisher" name="map_to_lidar_odom" args="0 0 0 0 0 0 map lidar_odom_frame 100"/> -->
 
-    <!-- T265 -->
-    <group ns="t265">
+    <node pkg="tf" type="static_transform_publisher" name="base_to_$(arg cam_name_2)" args="-0.3 0.156 -0.05 0.0 1.57 -1.57 base_link $(arg cam_name_2)_pose_frame 100"/>
+
+
+    <!-- T265 front -->
+    <group ns="$(arg cam_name_1)">
       <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+        <arg name="required"              value="$(arg required)"/> 
+        <arg name="respawn"               value="$(arg respawn )"/>
         <arg name="output"                value="$(arg output)"/>
         <arg name="device_type"           value="t265"/>
-        <arg name="serial_no"             value=""/>
-        <arg name="tf_prefix"             value="t265"/>
+        <arg name="serial_no"             value="$(arg serial_no_1)"/>
+        <arg name="tf_prefix"             value="$(arg cam_name_1)"/>
         <arg name="initial_reset"         value="false"/>
         <arg name="enable_fisheye1"       value="false"/>
         <arg name="enable_fisheye2"       value="false"/>
@@ -25,20 +36,74 @@
         <arg name="calib_odom_file"       value=""/>
         <arg name="enable_pose"           value="true"/>
         <arg name="publish_odom_tf"       value="false"/>
-        <arg name="linear_accel_cov"      value="0.01"/>
-        <arg name="angular_velocity_cov"  value="0.01"/>
-
+        <!-- <arg name="linear_accel_cov"      value="0.01"/> -->
+        <!-- <arg name="angular_velocity_cov"  value="0.01"/> -->
       </include>
+
+      <node pkg="drone_odometry" type="t265_monitor" name="t265_monitor" output="$(arg output)" >
+        <param name="camera_name" type="string" value="$(arg cam_name_1)" />   <!--odom_t265_in_topic_ = "/"+_camera_name+"/odom/sample";-->
+        <param name="odom_queue" value="100"/>  <!-- 100 -->
+        <param name="odom_period_treshold" value="0.1"/>  <!-- 0.1 warn flag if t265 pub period exceed this--> 
+        <param name="max_odom_period_th"   value="2.0"/>  <!-- 2.0 trigger reset if t265 pub period exceed this-->
+        <param name="v_cam_max_threshold"  value="0.20"/>  <!-- 0.20 reset can be triggered only if t265 vel is below thsi param-->
+        <param name="diff_min_threshold"   value="0.10"/>  <!-- 0.10 reset if diff bethween lidar and t265 is over this param-->
+        <param name="rst_cnt_min"          value="3"/>     <!-- 3 num of sample with cond satisfied for rtigger reset N.B. T=1/10-->  
+        <param name="debug"                value="true"/>  <!--  pub debug topics -->
+        <param name="enable_reset"         value="false"/> <!-- enable kill t265 node -->
+        <param name="min_reset_interval"   value="1.0"/>   <!-- min time bethween two resets -->
+      </node>
+
+      <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="$(arg output)" >
+        <param name="odom1_in_topic" type="string" value="/$(arg cam_name_1)/odom/sample"/>  
+        <param name="cov1_mult_pos" value="0.001"/>  <!-- 0.01 -->
+        <param name="cov1_mult_vel" value="0.0001"/>  <!-- 0.01 -->
+      </node>
+
     </group>
 
-    <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="$(arg output)" >
 
-      <param name="odom1_in_topic" type="string" value="/t265/odom/sample"/>  
-      <param name="cov1_mult_pos" value="0.001"/>  <!-- 0.01 -->
-      <param name="cov1_mult_vel" value="0.0001"/>  <!-- 0.01 -->
+     <!-- T265 back -->
+    <group ns="$(arg cam_name_2)">
+      <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+        <arg name="required"              value="$(arg required)"/> 
+        <arg name="respawn"               value="$(arg respawn )"/>
+        <arg name="output"                value="$(arg output)"/>
+        <arg name="device_type"           value="t265"/>
+        <arg name="serial_no"             value="$(arg serial_no_2)"/>
+        <arg name="tf_prefix"             value="$(arg cam_name_2)"/>
+        <arg name="initial_reset"         value="false"/>
+        <arg name="enable_fisheye1"       value="false"/>
+        <arg name="enable_fisheye2"       value="false"/>
+        <arg name="topic_odom_in"         value=""/>
+        <arg name="calib_odom_file"       value=""/>
+        <arg name="enable_pose"           value="true"/>
+        <arg name="publish_odom_tf"       value="false"/>
+        <!-- <arg name="linear_accel_cov"      value="0.01"/> -->
+        <!-- <arg name="angular_velocity_cov"  value="0.01"/> -->
+      </include>
 
-    </node>
+      <node pkg="drone_odometry" type="t265_monitor" name="t265_monitor" output="$(arg output)" >
+        <param name="camera_name" type="string" value="$(arg cam_name_2)" />   <!--odom_t265_in_topic_ = "/"+_camera_name+"/odom/sample";-->
+        <param name="odom_queue" value="100"/>  <!-- 100 -->
+        <param name="odom_period_treshold" value="0.1"/>  <!-- 0.1 warn flag if t265 pub period exceed this--> 
+        <param name="max_odom_period_th"   value="2.0"/>  <!-- 2.0 trigger reset if t265 pub period exceed this-->
+        <param name="v_cam_max_threshold"  value="0.20"/>  <!-- 0.20 reset can be triggered only if t265 vel is below thsi param-->
+        <param name="diff_min_threshold"   value="0.10"/>  <!-- 0.10 reset if diff bethween lidar and t265 is over this param-->
+        <param name="rst_cnt_min"          value="3"/>     <!-- 3 num of sample with cond satisfied for rtigger reset N.B. T=1/10-->  
+        <param name="debug"                value="true"/>  <!--  pub debug topics -->
+        <param name="enable_reset"         value="false"/> <!-- enable kill t265 node -->
+        <param name="min_reset_interval"   value="1.0"/>   <!-- min time bethween two resets -->
+      </node>
 
+      <node pkg="drone_odometry" type="odom_cov_overwrite" name="odom_cov_overwrite" output="$(arg output)" >
+        <param name="odom1_in_topic" type="string" value="/$(arg cam_name_2)/odom/sample"/>  
+        <param name="cov1_mult_pos" value="0.001"/>  <!-- 0.01 -->
+        <param name="cov1_mult_vel" value="0.0001"/>  <!-- 0.01 -->
+      </node>
+
+    </group>
+
+    
 
 
 </launch>

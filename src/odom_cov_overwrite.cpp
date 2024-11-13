@@ -25,7 +25,7 @@ public:
     OdomModifier()
     {
         // Initialize ROS node handle
-        nh_ = ros::NodeHandle("odom_cov_overwrite");
+        nh_ = ros::NodeHandle("~");
 
         // Get parameters from the parameter server
         if (!nh_.getParam("odom1_in_topic", odom1_in_topic_))
